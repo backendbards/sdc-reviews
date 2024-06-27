@@ -6,16 +6,13 @@ import * as readline from 'readline'
 import * as path from 'path'
 import csv from 'csv-parser'
 
-import { drizzle } from "drizzle-orm/node-postgres"
 import { sql } from 'drizzle-orm'
 
-import pg from "pg";
-const { Client } = pg;
+import { connect } from '../db/client.js'
+const db = await connect();
 
 const etl = async () => {
-  const client = new Client({ connectionString: process.env.DB_URL });
-  await client.connect();
-  const db = drizzle(client);
+
 
   console.log('starting')
 

@@ -1,19 +1,9 @@
-import { drizzle } from "drizzle-orm/node-postgres"
 import { sql } from 'drizzle-orm'
 
-import pg from "pg";
-const { Client } = pg;
+import { connect } from './client.js'
+const db = await connect()
 
 const reset = async () => {
-  const client = new Client({
-    host: "127.0.0.1",
-    port: 5432,
-    user: "postgres",
-    password: "postgres",
-    database: "sdc",
-  });
-  await client.connect();
-  const db = drizzle(client);
 
   await db.execute(sql`drop table reviews cascade`)
   console.log('dropped reviews')

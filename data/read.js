@@ -1,25 +1,15 @@
-import 'dotenv/config.js'
-
 import { performance } from 'perf_hooks'
 
-import { drizzle } from 'drizzle-orm/node-postgres';
 import { sql, eq } from 'drizzle-orm'
 import * as schema from '../db/schema.js'
-import pg from 'pg'
-const { Client } = pg
+
 const { reviews, reviewsPhotos } = schema
 
-const read = async () => {
+import { connect } from '../db/client.js'
+const db = await connect()
 
-  const client = new Client({
-    host: "127.0.0.1",
-    port: 5432,
-    user: "postgres",
-    password: "postgres",
-    database: "sdc",
-  });
-  await client.connect();
-  const db = drizzle(client, { schema });
+
+const read = async () => {
 
   const start = performance.now()
 
