@@ -38,7 +38,7 @@ export const characteristics = pgTable('characteristics', {
 
 export const reviewsRelations = relations(reviews, ({ many }) => ({
   photos: many(reviewsPhotos),
-  characteristicReviews: many(characteristicReviews)
+  characteristics: many(characteristicReviews)
 }))
 
 export const reviewsPhotosRelations = relations(reviewsPhotos, ({ one }) => ({
