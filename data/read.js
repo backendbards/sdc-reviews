@@ -1,5 +1,7 @@
 import 'dotenv/config.js'
 
+import { performance } from 'perf_hooks'
+
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { sql, eq } from 'drizzle-orm'
 import * as schema from '../db/schema.js'
@@ -18,6 +20,8 @@ const read = async () => {
   });
   await client.connect();
   const db = drizzle(client, { schema });
+
+  const start = performance.now()
 
   const result = await db.select({
     id: reviews.id,
@@ -39,8 +43,11 @@ const read = async () => {
   .groupBy(reviews.id)
   .limit(5)
 
+  const end = performance.now()
+
   // console.log(JSON.stringify(result, null, 2))
   console.log(result)
+  console.log(`time: ${end - start}ms`)
 
   process.exit()
   return true
