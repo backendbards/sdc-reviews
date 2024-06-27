@@ -1,3 +1,5 @@
+import 'dotenv/config.js'
+
 import * as fs from 'fs'
 import { rm } from 'fs/promises'
 import * as readline from 'readline'
@@ -11,13 +13,7 @@ import pg from "pg";
 const { Client } = pg;
 
 const etl = async () => {
-  const client = new Client({
-    host: "127.0.0.1",
-    port: 5432,
-    user: "postgres",
-    password: "postgres",
-    database: "sdc",
-  });
+  const client = new Client({ connectionString: process.env.DB_URL });
   await client.connect();
   const db = drizzle(client);
 
