@@ -6,36 +6,33 @@ import * as readline from 'readline'
 import * as path from 'path'
 import csv from 'csv-parser'
 
-import { sql } from 'drizzle-orm'
-
-import { connect } from '../db/client.js'
-const db = await connect();
+import sql from '../db/client.js'
 
 const etl = async () => {
 
 
   console.log('starting')
 
-  await db.execute(sql`truncate characteristic_reviews cascade`)
+  await sql`truncate characteristic_reviews cascade`
   console.log('characteristic_reviews emptied')
-  await db.execute(sql`truncate reviews_photos cascade`)
+  await sql`truncate reviews_photos cascade`
   console.log('reviews_photos emptied')
-  await db.execute(sql`truncate characteristics cascade`)
+  await sql`truncate characteristics cascade`
   console.log('characteristics emptied')
-  await db.execute(sql`truncate reviews cascade`)
+  await sql`truncate reviews cascade`
   console.log('reviews emptied')
 
   await rewriteReviews()
-  await db.execute(sql`copy reviews from '/tmp/sdcdata/reviews_adj.csv' delimiter ',' csv header`)
+  await sql`copy reviews from '/tmp/sdcdata/reviews_adj.csv' delimiter ',' csv header`
   console.log('reviews copied')
 
-  await db.execute(sql`copy reviews_photos from '/tmp/sdcdata/reviews_photos.csv' delimiter ',' csv header`)
+  await sql`copy reviews_photos from '/tmp/sdcdata/reviews_photos.csv' delimiter ',' csv header`
   console.log('reviews_photos copied')
 
-  await db.execute(sql`copy characteristics from '/tmp/sdcdata/characteristics.csv' delimiter ',' csv header`)
+  await sql`copy characteristics from '/tmp/sdcdata/characteristics.csv' delimiter ',' csv header`
   console.log('characteristics copied')
 
-  await db.execute(sql`copy characteristic_reviews from '/tmp/sdcdata/characteristic_reviews.csv' delimiter ',' csv header`)
+  await sql`copy characteristic_reviews from '/tmp/sdcdata/characteristic_reviews.csv' delimiter ',' csv header`
   console.log('characteristics_reviews copied')
 
   console.log('all done')
