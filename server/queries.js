@@ -13,6 +13,7 @@ export const getReviews = async (req, res) => {
     const offset = (page - 1) * limit
     const sort = req.query['sort']
     const orderBy = sort === 'newest' ? 'date desc' : sort === 'helpful' ? 'helpfulness desc' : 'id asc'
+    console.log(orderBy)
 
     const start = performance.now()
 
@@ -133,42 +134,94 @@ export const getMeta = async (req, res) => {
 }
 
 export const addReview = async (req, res) => {
-  console.log(req.body)
+  try {
 
-  const photos = req.body.photos.map(photo => `((select id from new_review), '${photo}')`).join(', ');
+    const photos = req.body.photos.map(photo => `((select id from new_review), '${photo}')`).join(', ');
+    const characteristics = Object.entries(req.body.characteristics).map(c => `((select id from new_review), ${c[0]}, ${c[1]})`)
 
-  let query = sql`
-    insert into reviews
-      (
-        product_id,
-        rating,
-        summary,
-        body,
-        reviewer_name
-      ) values (
-        ${req.body.product_id},
-        ${req.body.rating},
-        ${req.body.summary},
-        ${req.body.body},
-        ${req.body.reviewer_name}
-      )
-    returning id
-  `
-  if (req.body.photos.length > 0) {
-    query = sql`
+    const query = sql`
       with new_review as (
-        ${query}
+        insert into reviews
+        (
+          product_id,
+          rating,
+          summary,
+          body,
+          reviewer_name,
+          reviewer_email
+        ) values (
+          ${req.body.product_id},
+          ${req.body.rating},
+          ${req.body.summary},
+          ${req.body.body},
+          ${req.body.reviewer_name},
+          ${req.body.reviewer_email}
+        )
+        returning id
+      ),
+      characteristics as
+      (
+        insert into characteristic_reviews
+        (review_id, characteristic_id, value)
+        values
+        ${sql.unsafe(characteristics)}
       )
-      insert into
-        reviews_photos
-        (review_id, url)
-      values
-      ${sql.unsafe(photos)}
-      returning TRUE
+      ${req.body.photos.length > 0 ? sql`
+        insert into
+          reviews_photos
+          (review_id, url)
+        values
+        ${sql.unsafe(photos)}
+      ` : sql`select TRUE`}
     `
-  }
-  const [result] = await query
 
-  console.log(result)
-  res.json(result)
+    const result = await query
+
+    console.log(result)
+    res.json(result)
+  } catch (err) {
+    console.error(err)
+    res.sendStatus(500)
+  }
+
+}
+
+export const setHelpful = async (req, res) => {
+  if (!req.params.review_id) {
+    res.sendStatus(404)
+  }
+  try {
+    const result = await sql`
+      update reviews
+      set
+        helpfulness = helpfulness + 1
+      where
+        id = ${req.params.review_id}
+    `
+
+    res.json(result)
+  } catch(err) {
+    console.error(err)
+    res.sendStatus(500)
+  }
+}
+
+export const setReported = async (req, res) => {
+  if (!req.params.review_id) {
+    res.sendStatus(404)
+  }
+  try {
+    const result = await sql`
+      update reviews
+      set
+        reported = true
+      where
+        id = ${req.params.review_id}
+    `
+
+    res.json(result)
+  } catch(err) {
+    console.error(err)
+    res.sendStatus(500)
+  }
 }
