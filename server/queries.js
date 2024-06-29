@@ -131,3 +131,44 @@ export const getMeta = async (req, res) => {
 
   }
 }
+
+export const addReview = async (req, res) => {
+  console.log(req.body)
+
+  const photos = req.body.photos.map(photo => `((select id from new_review), '${photo}')`).join(', ');
+
+  let query = sql`
+    insert into reviews
+      (
+        product_id,
+        rating,
+        summary,
+        body,
+        reviewer_name
+      ) values (
+        ${req.body.product_id},
+        ${req.body.rating},
+        ${req.body.summary},
+        ${req.body.body},
+        ${req.body.reviewer_name}
+      )
+    returning id
+  `
+  if (req.body.photos.length > 0) {
+    query = sql`
+      with new_review as (
+        ${query}
+      )
+      insert into
+        reviews_photos
+        (review_id, url)
+      values
+      ${sql.unsafe(photos)}
+      returning TRUE
+    `
+  }
+  const [result] = await query
+
+  console.log(result)
+  res.json(result)
+}

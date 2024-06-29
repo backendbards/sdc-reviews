@@ -18,12 +18,12 @@ CREATE TABLE IF NOT EXISTS "reviews" (
 	"date" timestamp with time zone DEFAULT now(),
 	"summary" text,
 	"body" text,
-	"recommend" boolean,
-	"reported" boolean,
+	"recommend" boolean DEFAULT FALSE,
+	"reported" boolean DEFAULT FALSE,
 	"reviewer_name" text,
 	"reviewer_email" text,
 	"response" text,
-	"helpfulness" integer
+	"helpfulness" integer DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS "reviews_photos" (
@@ -38,3 +38,6 @@ CREATE TABLE IF NOT EXISTS "reviews_photos" (
 
  ALTER TABLE "reviews_photos" ADD CONSTRAINT "reviews_photos_review_id_reviews_id_fk" FOREIGN KEY ("review_id") REFERENCES "public"."reviews"("id") ON DELETE cascade ON UPDATE no action;
 
+SELECT setval(pg_get_serial_sequence('reviews', 'id'), COALESCE(MAX(id), 1)) FROM reviews;
+
+SELECT setval(pg_get_serial_sequence('reviews_photos', 'id'), COALESCE(MAX(id), 1)) FROM reviews_photos;
