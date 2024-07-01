@@ -13,9 +13,9 @@ export const getReviews = async (req, res) => {
     const offset = (page - 1) * limit
     const sort = req.query['sort']
     const orderBy = sort === 'newest' ? 'date desc' : sort === 'helpful' ? 'helpfulness desc' : 'id asc'
-    console.log(orderBy)
+    // console.log(orderBy)
 
-    const start = performance.now()
+    // const start = performance.now()
 
     const results = await sql`
       select
@@ -39,9 +39,9 @@ export const getReviews = async (req, res) => {
       offset ${offset}
       `
 
-    const end = performance.now()
+    // const end = performance.now()
 
-    console.log(`${end - start}ms`)
+    // console.log(`${end - start}ms`)
 
     res.json({
       product: product_id,
@@ -56,14 +56,14 @@ export const getReviews = async (req, res) => {
 }
 }
 
-export const getMeta = async (req, res) => {
+export const getBeta = async (req, res) => {
   const product_id = req.query['product_id']
   if (!product_id) {
     res.sendStatus(404)
   } else {
     try {
 
-      const start = performance.now()
+      // const start = performance.now()
 
       const counts = Array.from({length: 5}, (v, i) => sql`
         select
@@ -110,8 +110,8 @@ export const getMeta = async (req, res) => {
 
       const responses = await Promise.all([...counts, recommended, characteristics])
 
-      const end = performance.now()
-      console.log(`${end - start}ms`)
+      // const end = performance.now()
+      // console.log(`${end - start}ms`)
 
       res.json({
         product_id,
@@ -124,6 +124,67 @@ export const getMeta = async (req, res) => {
         },
         recommended: responses[5][0].recommended,
         characteristics: responses[6][0].chars
+      })
+    } catch (err) {
+      console.error(err)
+      res.sendStatus(500)
+    }
+
+  }
+}
+
+export const getMeta = async (req, res) => {
+  const product_id = req.query['product_id']
+  if (!product_id) {
+    res.sendStatus(404)
+  } else {
+    try {
+
+      // const start = performance.now()
+
+      const results = await sql`
+        with ratings_counts as
+      (
+        select rating, count(rating)
+      from reviews
+      where product_id = ${product_id}
+      group by product_id, rating
+      ), ratings as (
+      select json_build_object(1, coalesce((select count from ratings_counts where rating = 1), 0), 2, coalesce((select count from ratings_counts where rating = 2), 0), 3, coalesce((select count from ratings_counts where rating = 3), 0), 4, coalesce((select count from ratings_counts where rating = 4), 0), 5, coalesce((select count from ratings_counts where rating = 5), 0)) as ratings limit 1
+      ), characteristic_avgs as
+      (
+        select
+          name,
+          characteristic_id as id,
+          avg(value) as value
+        from characteristic_reviews
+        join characteristics
+          on characteristic_id = characteristics.id
+        where product_id = ${product_id}
+        group by characteristic_id, name
+      ), recommends_true as
+      (
+        select count(id), recommend
+        from reviews
+        where product_id = ${product_id} and recommend = true
+        group by recommend
+      ),
+      recommends_false as
+      (
+        select count(id), recommend
+        from reviews
+        where product_id = ${product_id} and recommend = false
+        group by recommend
+      )
+      select json_build_object('ratings', (select * from ratings), 'characteristics', (select json_object_agg(name, json_build_object('id', id, 'value', value)) from characteristic_avgs), 'recommended', (select json_build_object('false', recommends_false.count, 'true', recommends_true.count) as recommend from recommends_true, recommends_false)) as results
+      `
+
+      // const end = performance.now()
+      // console.log(`${end - start}ms`)
+
+      res.json({
+        product_id,
+        ...results[0].results
       })
     } catch (err) {
       console.error(err)
@@ -177,7 +238,7 @@ export const addReview = async (req, res) => {
 
     const result = await query
 
-    console.log(result)
+    // console.log(result)
     res.json(result)
   } catch (err) {
     console.error(err)
