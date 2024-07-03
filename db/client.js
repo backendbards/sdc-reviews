@@ -1,7 +1,15 @@
 import 'dotenv/config'
 
-import postgres from 'postgres'
+// import postgres from 'postgres'
 
-const sql = postgres(process.env.DB_URL)
+// const sql = postgres(process.env.DB_URL)
 
-export default sql
+// export default sql
+
+import pg from 'pg'
+
+const { Pool } = pg
+const pool = new Pool({ connectionString: process.env.DB_URL })
+const client = await pool.connect()
+
+export default client

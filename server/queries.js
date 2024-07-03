@@ -1,6 +1,7 @@
 import { performance } from 'perf_hooks'
 
-import sql from '../db/client.js'
+import db from '../db/client.js'
+
 
 export const getReviews = async (req, res) => {
   const product_id = req.query['product_id']
@@ -17,8 +18,34 @@ export const getReviews = async (req, res) => {
 
     // const start = performance.now()
 
-    const results = await sql`
-      select
+    // const results = await sql`
+    //   select
+    //     reviews.id as id,
+    //     product_id,
+    //     rating,
+    //     date,
+    //     summary,
+    //     body,
+    //     recommend,
+    //     reviewer_name,
+    //     response,
+    //     helpfulness,
+    //     coalesce(array_agg(json_build_object('id', reviews_photos.id, 'url', url)) filter (where reviews_photos.id is not null), '{}') as photos
+    //   from reviews
+    //   left join reviews_photos on reviews.id = reviews_photos.review_id
+    //   where product_id = ${product_id}
+    //   group by reviews.id
+    //   order by ${orderBy}
+    //   limit ${limit}
+    //   offset ${offset}
+    //   `
+
+    // const end = performance.now()
+
+    // console.log(`${end - start}ms`)
+
+    const { rows: results } = await db.query(`
+        select
         reviews.id as id,
         product_id,
         rating,
@@ -32,16 +59,13 @@ export const getReviews = async (req, res) => {
         coalesce(array_agg(json_build_object('id', reviews_photos.id, 'url', url)) filter (where reviews_photos.id is not null), '{}') as photos
       from reviews
       left join reviews_photos on reviews.id = reviews_photos.review_id
-      where product_id = ${product_id}
+      where product_id = $1
       group by reviews.id
-      order by ${orderBy}
-      limit ${limit}
-      offset ${offset}
-      `
-
-    // const end = performance.now()
-
-    // console.log(`${end - start}ms`)
+      order by $2
+      limit $3
+      offset $4
+    `, [product_id, orderBy, limit, offset])
+    console.log(results)
 
     res.json({
       product: product_id,
