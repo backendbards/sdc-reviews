@@ -65,7 +65,7 @@ export const getReviews = async (req, res) => {
       limit $3
       offset $4
     `, [product_id, orderBy, limit, offset])
-    console.log(results)
+    // console.log(results)
 
     res.json({
       product: product_id,
