@@ -1,6 +1,6 @@
-import { performance } from 'perf_hooks'
+// import { performance } from 'perf_hooks'
 
-// import db from '../db/client.js'
+// import client from '../db/client.js'
 import sql from '../db/client.js'
 
 
@@ -45,7 +45,10 @@ export const getReviews = async (req, res) => {
 
     // console.log(`${end - start}ms`)
 
-    // const { rows: results } = await db.query(`
+    // let client = client()
+    // await client.connect()
+
+    // const { rows: results } = await client.query(`
     //     select
     //     reviews.id as id,
     //     product_id,
@@ -67,6 +70,8 @@ export const getReviews = async (req, res) => {
     //   offset $4
     // `, [product_id, orderBy, limit, offset])
     // console.log(results)
+
+    // await client.end()
 
     res.json({
       product: product_id,
